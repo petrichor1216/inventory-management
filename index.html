@@ -1,0 +1,789 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>奶茶店库存管理系统</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🧋</text></svg>">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 10px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #ff6b6b, #ffa500);
+            color: white;
+            padding: 25px;
+            text-align: center;
+            position: relative;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .header p {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+
+        .github-link {
+            position: absolute;
+            top: 15px;
+            right: 20px;
+            background: rgba(255,255,255,0.2);
+            padding: 8px 15px;
+            border-radius: 20px;
+            text-decoration: none;
+            color: white;
+            font-size: 0.9em;
+            transition: background 0.3s;
+        }
+
+        .github-link:hover {
+            background: rgba(255,255,255,0.3);
+        }
+
+        .summary {
+            background: #f8f9ff;
+            padding: 20px;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+        }
+
+        .summary-card {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            transition: transform 0.3s ease;
+        }
+
+        .summary-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .summary-card h3 {
+            color: #666;
+            font-size: 0.9em;
+            margin-bottom: 10px;
+        }
+
+        .summary-card .number {
+            font-size: 1.8em;
+            font-weight: bold;
+            color: #333;
+        }
+
+        .main-content {
+            padding: 30px;
+        }
+
+        .section {
+            margin-bottom: 40px;
+        }
+
+        .section-title {
+            font-size: 1.5em;
+            color: #333;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 3px solid #ff6b6b;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .inventory-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+        }
+
+        .inventory-item {
+            background: #f8f9ff;
+            border-radius: 12px;
+            padding: 20px;
+            border-left: 5px solid #667eea;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .inventory-item:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+        }
+
+        .inventory-item.low-stock {
+            border-left-color: #ff4757;
+            background: #fff5f5;
+        }
+
+        .item-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .item-name {
+            font-size: 1.2em;
+            font-weight: bold;
+            color: #333;
+        }
+
+        .stock-status {
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 0.8em;
+            font-weight: bold;
+        }
+
+        .stock-ok {
+            background: #2ed573;
+            color: white;
+        }
+
+        .stock-low {
+            background: #ff4757;
+            color: white;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.7; }
+            100% { opacity: 1; }
+        }
+
+        .item-details {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .detail-item {
+            text-align: center;
+        }
+
+        .detail-label {
+            color: #666;
+            font-size: 0.9em;
+        }
+
+        .detail-value {
+            font-size: 1.1em;
+            font-weight: bold;
+            color: #333;
+        }
+
+        .usage-input {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .usage-input input {
+            flex: 1;
+            padding: 10px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 1em;
+        }
+
+        .usage-input input:focus {
+            border-color: #667eea;
+            outline: none;
+        }
+
+        .usage-input button {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: background 0.3s;
+        }
+
+        .usage-input button:hover {
+            background: #5a6fd8;
+        }
+
+        .add-stock-section {
+            background: #f8f9ff;
+            padding: 25px;
+            border-radius: 12px;
+            margin-bottom: 30px;
+            border: 2px dashed #ddd;
+        }
+
+        .add-stock-form {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            align-items: end;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .form-group label {
+            color: #666;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+
+        .form-group input, .form-group select {
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 1em;
+        }
+
+        .form-group input:focus, .form-group select:focus {
+            border-color: #667eea;
+            outline: none;
+        }
+
+        .add-btn {
+            background: #2ed573;
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 1em;
+            transition: background 0.3s;
+        }
+
+        .add-btn:hover {
+            background: #26d069;
+        }
+
+        .data-management {
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .data-buttons {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .data-btn {
+            background: #6c5ce7;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.9em;
+            transition: background 0.3s;
+        }
+
+        .data-btn:hover {
+            background: #5f3dc4;
+        }
+
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: #2ed573;
+            color: white;
+            padding: 15px 20px;
+            border-radius: 8px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+            transform: translateX(400px);
+            transition: transform 0.3s ease;
+            z-index: 1000;
+        }
+
+        .notification.show {
+            transform: translateX(0);
+        }
+
+        .notification.error {
+            background: #ff4757;
+        }
+
+        .footer {
+            background: #f8f9ff;
+            text-align: center;
+            padding: 20px;
+            color: #666;
+            border-top: 1px solid #eee;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                margin: 5px;
+                border-radius: 10px;
+            }
+            
+            .main-content {
+                padding: 15px;
+            }
+            
+            .inventory-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .add-stock-form {
+                grid-template-columns: 1fr;
+            }
+
+            .header h1 {
+                font-size: 2em;
+            }
+
+            .github-link {
+                position: static;
+                display: inline-block;
+                margin-top: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <a href="https://github.com" class="github-link">🔗 GitHub部署</a>
+            <h1>🧋 奶茶店库存管理系统</h1>
+            <p>智能管理，轻松经营 | 数据本地保存，安全可靠</p>
+        </div>
+
+        <div class="summary">
+            <div class="summary-card">
+                <h3>📦 库存总价值</h3>
+                <div class="number" id="totalValue">¥0</div>
+            </div>
+            <div class="summary-card">
+                <h3>💰 本月消耗成本</h3>
+                <div class="number" id="monthlyCost">¥0</div>
+            </div>
+            <div class="summary-card">
+                <h3>⚠️ 库存不足警告</h3>
+                <div class="number" id="lowStockCount">0</div>
+            </div>
+            <div class="summary-card">
+                <h3>📊 今日使用成本</h3>
+                <div class="number" id="todayCost">¥0</div>
+            </div>
+        </div>
+
+        <div class="main-content">
+            <div class="section">
+                <h2 class="section-title">💾 数据管理</h2>
+                <div class="data-management">
+                    <p style="margin-bottom: 15px;">💡 <strong>提示：</strong>数据自动保存在浏览器中，建议定期备份重要数据</p>
+                    <div class="data-buttons">
+                        <button class="data-btn" onclick="exportData()">📥 导出数据</button>
+                        <button class="data-btn" onclick="importData()">📤 导入数据</button>
+                        <button class="data-btn" onclick="resetData()">🔄 重置数据</button>
+                        <button class="data-btn" onclick="showHelp()">❓ 使用帮助</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="section">
+                <h2 class="section-title">📦 补充库存</h2>
+                <div class="add-stock-section">
+                    <div class="add-stock-form">
+                        <div class="form-group">
+                            <label>🎯 选择原料</label>
+                            <select id="selectItem">
+                                <option value="">请选择原料</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>📊 补充数量</label>
+                            <input type="number" id="addQuantity" placeholder="输入数量" min="0">
+                        </div>
+                        <div class="form-group">
+                            <label>💰 单价 (元)</label>
+                            <input type="number" id="addPrice" placeholder="输入单价" min="0" step="0.01">
+                        </div>
+                        <button class="add-btn" onclick="addStock()">✅ 补充库存</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="section">
+                <h2 class="section-title">📋 当前库存状态</h2>
+                <div class="inventory-grid" id="inventoryGrid">
+                    <!-- 库存项目将通过 JavaScript 动态生成 -->
+                </div>
+            </div>
+        </div>
+
+        <div class="footer">
+            <p>🚀 由 Claude 4 AI 助手生成 | 💻 适配手机和电脑使用 | 📱 可添加到桌面使用</p>
+            <p style="margin-top: 5px; font-size: 0.9em;">
+                数据保存在本地浏览器，请定期备份 | 
+                <a href="#" onclick="showHelp()" style="color: #667eea;">查看使用说明</a>
+            </p>
+        </div>
+    </div>
+
+    <div class="notification" id="notification"></div>
+
+    <input type="file" id="fileInput" accept=".json" style="display: none;" onchange="handleFileImport(event)">
+
+    <script>
+        // 初始化库存数据
+        let inventory = {
+            '牛奶': { current: 50, min: 10, price: 3.5, used: 0, unit: '盒' },
+            '红茶': { current: 30, min: 5, price: 2.0, used: 0, unit: '包' },
+            '绿茶': { current: 25, min: 5, price: 2.2, used: 0, unit: '包' },
+            '糖浆': { current: 8, min: 3, price: 8.0, used: 0, unit: '瓶' },
+            '珍珠': { current: 15, min: 5, price: 12.0, used: 0, unit: 'kg' },
+            '椰果': { current: 12, min: 4, price: 6.5, used: 0, unit: 'kg' },
+            '布丁': { current: 20, min: 6, price: 4.0, used: 0, unit: 'kg' }
+        };
+
+        // 从本地存储加载数据
+        function loadData() {
+            try {
+                const saved = localStorage.getItem('bubbleTeaInventory');
+                if (saved) {
+                    inventory = JSON.parse(saved);
+                    showNotification('数据加载成功！', 'success');
+                }
+            } catch (error) {
+                console.log('LocalStorage不可用，使用临时数据');
+                showNotification('注意：数据将不会保存，请使用完整版', 'error');
+            }
+        }
+
+        // 保存数据到本地存储
+        function saveData() {
+            try {
+                localStorage.setItem('bubbleTeaInventory', JSON.stringify(inventory));
+            } catch (error) {
+                console.log('无法保存数据到localStorage');
+            }
+        }
+
+        // 显示通知
+        function showNotification(message, type = 'success') {
+            const notification = document.getElementById('notification');
+            notification.textContent = message;
+            notification.className = `notification ${type}`;
+            notification.classList.add('show');
+            
+            setTimeout(() => {
+                notification.classList.remove('show');
+            }, 3000);
+        }
+
+        // 渲染库存列表
+        function renderInventory() {
+            const grid = document.getElementById('inventoryGrid');
+            const selectItem = document.getElementById('selectItem');
+            
+            grid.innerHTML = '';
+            selectItem.innerHTML = '<option value="">请选择原料</option>';
+
+            for (const [name, data] of Object.entries(inventory)) {
+                const isLowStock = data.current <= data.min;
+                
+                const itemDiv = document.createElement('div');
+                itemDiv.className = `inventory-item ${isLowStock ? 'low-stock' : ''}`;
+                
+                itemDiv.innerHTML = `
+                    <div class="item-header">
+                        <div class="item-name">${name}</div>
+                        <div class="stock-status ${isLowStock ? 'stock-low' : 'stock-ok'}">
+                            ${isLowStock ? '⚠️ 库存不足' : '✅ 库存充足'}
+                        </div>
+                    </div>
+                    <div class="item-details">
+                        <div class="detail-item">
+                            <div class="detail-label">当前库存</div>
+                            <div class="detail-value">${data.current} ${data.unit}</div>
+                        </div>
+                        <div class="detail-item">
+                            <div class="detail-label">警戒线</div>
+                            <div class="detail-value">${data.min} ${data.unit}</div>
+                        </div>
+                        <div class="detail-item">
+                            <div class="detail-label">单价</div>
+                            <div class="detail-value">¥${data.price}</div>
+                        </div>
+                        <div class="detail-item">
+                            <div class="detail-label">今日已用</div>
+                            <div class="detail-value">${data.used} ${data.unit}</div>
+                        </div>
+                    </div>
+                    <div class="usage-input">
+                        <input type="number" placeholder="使用数量" min="0" max="${data.current}" id="use-${name}">
+                        <button onclick="useStock('${name}')">📝 记录使用</button>
+                    </div>
+                `;
+                
+                grid.appendChild(itemDiv);
+                
+                // 添加到选择列表
+                const option = document.createElement('option');
+                option.value = name;
+                option.textContent = `${name} (当前: ${data.current}${data.unit})`;
+                selectItem.appendChild(option);
+            }
+            
+            updateSummary();
+        }
+
+        // 更新统计信息
+        function updateSummary() {
+            let totalValue = 0;
+            let monthlyCost = 0;
+            let lowStockCount = 0;
+            let todayCost = 0;
+
+            for (const [name, data] of Object.entries(inventory)) {
+                totalValue += data.current * data.price;
+                monthlyCost += data.used * data.price * 30; // 假设按30天计算
+                todayCost += data.used * data.price;
+                if (data.current <= data.min) {
+                    lowStockCount++;
+                }
+            }
+
+            document.getElementById('totalValue').textContent = `¥${totalValue.toFixed(2)}`;
+            document.getElementById('monthlyCost').textContent = `¥${monthlyCost.toFixed(2)}`;
+            document.getElementById('lowStockCount').textContent = lowStockCount;
+            document.getElementById('todayCost').textContent = `¥${todayCost.toFixed(2)}`;
+        }
+
+        // 使用库存
+        function useStock(itemName) {
+            const input = document.getElementById(`use-${itemName}`);
+            const useAmount = parseFloat(input.value);
+            
+            if (!useAmount || useAmount <= 0) {
+                showNotification('请输入有效的使用数量！', 'error');
+                return;
+            }
+            
+            if (useAmount > inventory[itemName].current) {
+                showNotification('使用数量不能超过当前库存！', 'error');
+                return;
+            }
+            
+            inventory[itemName].current -= useAmount;
+            inventory[itemName].used += useAmount;
+            input.value = '';
+            
+            saveData();
+            renderInventory();
+            
+            showNotification(`✅ 成功记录使用 ${itemName} ${useAmount}${inventory[itemName].unit}`, 'success');
+            
+            // 库存不足提醒
+            if (inventory[itemName].current <= inventory[itemName].min) {
+                setTimeout(() => {
+                    showNotification(`⚠️ 警告：${itemName} 库存不足，请及时补货！`, 'error');
+                }, 1000);
+            }
+        }
+
+        // 补充库存
+        function addStock() {
+            const selectItem = document.getElementById('selectItem');
+            const addQuantity = document.getElementById('addQuantity');
+            const addPrice = document.getElementById('addPrice');
+            
+            const itemName = selectItem.value;
+            const quantity = parseFloat(addQuantity.value);
+            const price = parseFloat(addPrice.value);
+            
+            if (!itemName) {
+                showNotification('请选择要补充的原料！', 'error');
+                return;
+            }
+            
+            if (!quantity || quantity <= 0) {
+                showNotification('请输入有效的补充数量！', 'error');
+                return;
+            }
+            
+            if (!price || price <= 0) {
+                showNotification('请输入有效的单价！', 'error');
+                return;
+            }
+            
+            inventory[itemName].current += quantity;
+            inventory[itemName].price = price; // 更新单价
+            
+            // 清空表单
+            selectItem.value = '';
+            addQuantity.value = '';
+            addPrice.value = '';
+            
+            saveData();
+            renderInventory();
+            
+            showNotification(`✅ 成功补充 ${itemName} ${quantity}${inventory[itemName].unit}！`, 'success');
+        }
+
+        // 导出数据
+        function exportData() {
+            try {
+                const dataStr = JSON.stringify(inventory, null, 2);
+                const dataUri = 'data:application/json;charset=utf-8,'+ encodeURIComponent(dataStr);
+                
+                const exportFileDefaultName = `库存数据_${new Date().toISOString().split('T')[0]}.json`;
+                
+                const linkElement = document.createElement('a');
+                linkElement.setAttribute('href', dataUri);
+                linkElement.setAttribute('download', exportFileDefaultName);
+                linkElement.click();
+                
+                showNotification('数据导出成功！', 'success');
+            } catch (error) {
+                showNotification('导出失败，请重试', 'error');
+            }
+        }
+
+        // 导入数据
+        function importData() {
+            document.getElementById('fileInput').click();
+        }
+
+        // 处理文件导入
+        function handleFileImport(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const importedData = JSON.parse(e.target.result);
+                    inventory = importedData;
+                    saveData();
+                    renderInventory();
+                    showNotification('数据导入成功！', 'success');
+                } catch (error) {
+                    showNotification('文件格式错误，请检查JSON格式', 'error');
+                }
+            };
+            reader.readAsText(file);
+        }
+
+        // 重置数据
+        function resetData() {
+            if (confirm('确定要重置所有数据吗？此操作不可恢复！')) {
+                inventory = {
+                    '牛奶': { current: 50, min: 10, price: 3.5, used: 0, unit: '盒' },
+                    '红茶': { current: 30, min: 5, price: 2.0, used: 0, unit: '包' },
+                    '绿茶': { current: 25, min: 5, price: 2.2, used: 0, unit: '包' },
+                    '糖浆': { current: 8, min: 3, price: 8.0, used: 0, unit: '瓶' },
+                    '珍珠': { current: 15, min: 5, price: 12.0, used: 0, unit: 'kg' },
+                    '椰果': { current: 12, min: 4, price: 6.5, used: 0, unit: 'kg' },
+                    '布丁': { current: 20, min: 6, price: 4.0, used: 0, unit: 'kg' }
+                };
+                saveData();
+                renderInventory();
+                showNotification('数据已重置为初始状态', 'success');
+            }
+        }
+
+        // 显示帮助
+        function showHelp() {
+            const helpText = `
+🧋 奶茶店库存管理系统使用说明
+
+📋 主要功能：
+• 库存管理：实时查看原料库存状态
+• 使用记录：记录每日原料使用情况
+• 补充库存：记录进货信息和价格更新
+• 成本统计：自动计算今日和月度成本
+• 数据备份：支持导出/导入数据
+
+⚠️ 库存警告：
+• 当库存低于警戒线时会显示红色警告
+• 使用库存时如果不足会自动提醒
+
+💾 数据保存：
+• 数据自动保存在浏览器本地
+• 建议定期使用"导出数据"功能备份
+• 更换设备时可以使用"导入数据"恢复
+
+📱 移动端使用：
+• 可以添加到手机桌面快捷方式
+• 界面自适应手机屏幕
+• 随时随地管理库存
+
+❓ 如有问题，请检查浏览器是否支持localStorage功能
+            `;
+            alert(helpText);
+        }
+
+        // 键盘快捷键支持
+        document.addEventListener('keydown', function(e) {
+            if (e.ctrlKey || e.metaKey) {
+                switch(e.key) {
+                    case 's':
+                        e.preventDefault();
+                        exportData();
+                        break;
+                    case 'r':
+                        e.preventDefault();
+                        renderInventory();
+                        break;
+                }
+            }
+        });
+
+        // 初始化应用
+        document.addEventListener('DOMContentLoaded', function() {
+            loadData();
+            renderInventory();
+            
+            // 检查localStorage支持
+            try {
+                localStorage.setItem('test', 'test');
+                localStorage.removeItem('test');
+            } catch (error) {
+                showNotification('注意：当前环境不支持数据保存，建议在本地环境使用', 'error');
+            }
+        });
+
+        // 定时保存数据（防止意外丢失）
+        setInterval(saveData, 30000); // 每30秒自动保存一次
+    </script>
+</body>
+</html>
